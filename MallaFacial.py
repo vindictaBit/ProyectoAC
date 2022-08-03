@@ -17,10 +17,10 @@ MallaFacial = mpMallaFacial.FaceMesh(max_num_faces=1)  # Creamos el objeto(Ctrl+
 
 # --- While principal
 while True:
-
     ret, frame = cap.read()
     # ----- Correccion de color-mad
     frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    frame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
 
     # Observanos los resultados
     resultados = MallaFacial.process(frameRGB)
@@ -34,10 +34,9 @@ while True:
 
     if resultados.multi_face_landmarks:  # Si detectamos algun rastre
         for rostros in resultados.multi_face_landmarks:  # Mostramos el rostro detectado
-            mpDibujo.draw_landmarks(frame, rostros,
-                                    mpMallaFacial.FACEMESH_TESSELATION, ConfDibu, ConfDibu)
+            mpDibujo.draw_landmarks(frame, rostros, mpMallaFacial.FACE_CONNECTIONS, ConfDibu, ConfDibu)
 
-            # Ahora vamosaextraer los puntos del rostro detectado
+            # Ahora vamos a extraer los puntos del rostro detectado
             for id, puntos in enumerate(rostros.landmark):
                 # print(puntos)#Nos entrega una proporcion
                 al, an, c = frame.shape
@@ -100,10 +99,11 @@ while True:
                         cv2.putText(frame, 'Persona Triste', (480, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (255, 0, 0), 3)
 
-    cv2.imshow("Reconocimiento de Emociones", frame)
+    cv2.imshow("frame", frame)
     t = cv2.waitKey(1)
 
-    if t == 27:
+    # if t == 27:
+    if t == ord('q'):
         break
 cap.release()
 cv2.destroyAllWindows()
