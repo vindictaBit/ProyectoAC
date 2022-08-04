@@ -13,7 +13,7 @@ def emotionImage(emotion):
         image = cv2.imread('asombro.png')
     elif emotion == 'Persona Triste':
         image = cv2.imread('tristeza.png')
-    else:
+    else: # Persona Neutral
         image = cv2.imread('neutral.png')
     return image
 
