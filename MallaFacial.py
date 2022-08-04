@@ -1,11 +1,24 @@
 import cv2
 import mediapipe as mp
 import math
+import numpy as np
+
+def emotionImage(emotion):
+    # emojis
+    if emotion == 'Persona Enojada':
+        image = cv2.imread('enojo.png')
+    elif emotion == 'Persona Feliz':
+        image = cv2.imread('felicidad.png')
+    elif emotion == 'Persona Asombrada':
+        image = cv2.imread('asombro.png')
+    elif emotion == 'Persona Triste':
+        image = cv2.imread('tristeza.png')
+    else:
+        image = cv2.imread('neutral.png')
+    return image
 
 # -Realizamos la Video Captura: 0 cámara integrada / 1 cámara no integrada
 cap = cv2.VideoCapture(0)
-cap.set(3, 1280)  # Definimos el ancho de la ventana
-cap.set(4, 720)  # Definimos el alto de la ventana
 
 # -Creamos nuestra funcion de dibujo
 mpDibujo = mp.solutions.drawing_utils
@@ -19,9 +32,24 @@ MallaFacial = mpMallaFacial.FaceMesh(max_num_faces=1)  # Creamos el objeto(Ctrl+
 while True:
     ret, frame = cap.read()
     # ----- Correccion de color-mad
-    frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    frame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
+    # frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    # print(frame.shape)
+    # frame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
+    # print(frame.shape)
+    nFrame = cv2.hconcat([frame, np.zeros((480, 300, 3), np.uint8)])
+    #nFrame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
+    """
+    width = int(cap.get(3))
+    height = int(cap.get(4))
+    image = np.zeros(frame.shape, np.uint8)
+    smaller_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
+    image[:height // 2, :width // 2] = smaller_frame
+    image[height // 2:, :width // 2] = smaller_frame
+    image[:height // 2, width // 2:] = smaller_frame
+    image[height // 2:, width // 2:] = smaller_frame
+    """
 
+    frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Observanos los resultados
     resultados = MallaFacial.process(frameRGB)
 
@@ -82,24 +110,37 @@ while True:
 
                     # Enojado
                     if longitud1 < 19 and longitud2 < 19 and 80 < longitud3 < 95 and longitud4 < 5:
-                        cv2.putText(frame, 'Persona Enojada', (480, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        cv2.putText(frame, 'Persona Enojada', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 0, 255), 3)
+                        image = emotionImage('Persona Enojada')
+                        nFrame = cv2.hconcat([frame, image])
+
                     # Feliz
                     elif longitud1 > 20 and longitud1 < 30 and longitud2 > 20 and longitud2 < 30 and longitud3 > 109 and longitud4 > 10 and longitud4 < 20:
-                        cv2.putText(frame, 'Persona Feliz', (480, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        cv2.putText(frame, 'Persona Feliz', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 255, 255), 3)
+                        image = emotionImage('Persona Feliz')
+                        nFrame = cv2.hconcat([frame, image])
 
                     # Asombrado
                     elif longitud1 > 35 and longitud2 > 35 and longitud3 > 80 and longitud3 < 90 and longitud4 > 20:
-                        cv2.putText(frame, 'Persona Asombrada', (480, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        cv2.putText(frame, 'Persona Asombrada', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 255, 0), 3)
+                        image = emotionImage('Persona Asombrada')
+                        nFrame = cv2.hconcat([frame, image])
 
                     # Triste
                     elif longitud1 > 20 and longitud1 < 35 and longitud2 > 20 and longitud2 < 35 and longitud3 > 80 and longitud3 < 95 and longitud4 < 5:
-                        cv2.putText(frame, 'Persona Triste', (480, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
+                        cv2.putText(frame, 'Persona Triste', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (255, 0, 0), 3)
+                        image = emotionImage('Persona Triste')
+                        nFrame = cv2.hconcat([frame, image])
 
-    cv2.imshow("frame", frame)
+                    else:
+                        image = emotionImage('Persona Neutral')
+                        nFrame = cv2.hconcat([frame, image])
+
+    cv2.imshow("nFrame", nFrame)
     t = cv2.waitKey(1)
 
     # if t == 27:
