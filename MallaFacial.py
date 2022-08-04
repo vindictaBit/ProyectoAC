@@ -109,14 +109,14 @@ while True:
                     # Clasificacion Emocional
 
                     # Enojado
-                    if longitud1 < 19 and longitud2 < 19 and 80 < longitud3 < 95 and longitud4 < 5:
+                    if longitud1 < 23 and longitud2 < 23 and 80 < longitud3 < 95 and longitud4 < 5:
                         cv2.putText(frame, 'Persona Enojada', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 0, 255), 3)
                         image = emotionImage('Persona Enojada')
                         nFrame = cv2.hconcat([frame, image])
 
                     # Feliz
-                    elif longitud1 > 20 and longitud1 < 30 and longitud2 > 20 and longitud2 < 30 and longitud3 > 109 and longitud4 > 10 and longitud4 < 20:
+                    elif 20 < longitud1 < 30 and 20 < longitud2 < 30 and longitud3 > 90 and 5 < longitud4 < 20:
                         cv2.putText(frame, 'Persona Feliz', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
                                     (0, 255, 255), 3)
                         image = emotionImage('Persona Feliz')
