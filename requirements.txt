@@ -10,7 +10,7 @@ numpy	1.23.1	1.23.1
 opencv-contrib-python	4.5.3.56	4.6.0.66
 opencv-python	4.5.3.56	4.6.0.66
 packaging	21.3	21.3
-pip	21.2.3	22.2.1
+pip	21.2.3	22.2.2
 protobuf	3.17.3	4.21.4
 pyparsing	3.0.9	3.0.9
 python-dateutil	2.8.2	2.8.2
