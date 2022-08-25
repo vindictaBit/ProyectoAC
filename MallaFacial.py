@@ -2,57 +2,61 @@ import cv2
 import mediapipe as mp
 import math
 import numpy as np
+import random
+import time
+from tqdm import tqdm
 
-def emotionImage(emotion):
-    # emojis
-    if emotion == 'Persona Enojada':
-        image = cv2.imread('enojo.png')
-    elif emotion == 'Persona Feliz':
-        image = cv2.imread('felicidad.png')
-    elif emotion == 'Persona Asombrada':
-        image = cv2.imread('asombro.png')
-    elif emotion == 'Persona Triste':
-        image = cv2.imread('tristeza.png')
-    else: # Persona Neutral
-        image = cv2.imread('neutral.png')
-    return image
+# RANDOM
+def emocionAleatoria():
+    emocion = {
+        1: 'Enojo',
+        2: 'Felicidad',
+        3: 'Asombro',
+        4: 'Tristeza',
+        5: 'Neutralidad'
+    }
+    return emocion.get(random.randint(1, 5), 'Neutralidad')
 
-# -Realizamos la Video Captura: 0 cámara integrada / 1 cámara no integrada
+# EMOJIS
+def imagenEmocion(emocion):
+    if emocion == 'Enojo':
+        imagen = cv2.imread('enojo.jpeg')
+    elif emocion == 'Felicidad':
+        imagen = cv2.imread('felicidad.jpeg')
+    elif emocion == 'Asombro':
+        imagen = cv2.imread('sorpresa.jpeg')
+    elif emocion == 'Tristeza':
+        imagen = cv2.imread('tristeza.jpeg')
+    else: # Neutralidad
+        imagen = cv2.imread('neutralidad.jpeg')
+    return imagen
+
+# Realizamos la Video Captura: 0 cámara integrada / 1 cámara no integrada
 cap = cv2.VideoCapture(0)
 
-# -Creamos nuestra funcion de dibujo
+# Creamos nuestra funcion de dibujo
 mpDibujo = mp.solutions.drawing_utils
 ConfDibu = mpDibujo.DrawingSpec(thickness=1, circle_radius=1)  # Ajustamos la configuracion de dibujo
 
-# Creanos un objeto donde almacenarenos la malla facial
+# Creamos un objeto donde almacenarenos la malla facial
 mpMallaFacial = mp.solutions.face_mesh  # Prinero llamamos la funcion
 MallaFacial = mpMallaFacial.FaceMesh(max_num_faces=1)  # Creamos el objeto(Ctrl+Click)
 
-# --- While principal
+# Primera Instancia de las Emociones, Puntuacion y Progreso
+emocion = emocionAleatoria()
+anterior = emocion
+contador = 0
+puntuacion = 0
+limite = 5
+loop = tqdm(total=limite, position=0, leave=False)
+# While principal
 while True:
     ret, frame = cap.read()
-    # ----- Correccion de color-mad
-    # frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # print(frame.shape)
-    # frame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
-    # print(frame.shape)
     nFrame = cv2.hconcat([frame, np.zeros((480, 300, 3), np.uint8)])
-    #nFrame = cv2.resize(frame, (0, 0), fx=1.5, fy=1.5)
-    """
-    width = int(cap.get(3))
-    height = int(cap.get(4))
-    image = np.zeros(frame.shape, np.uint8)
-    smaller_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
-    image[:height // 2, :width // 2] = smaller_frame
-    image[height // 2:, :width // 2] = smaller_frame
-    image[:height // 2, width // 2:] = smaller_frame
-    image[height // 2:, width // 2:] = smaller_frame
-    """
-
     frameRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
     # Observanos los resultados
     resultados = MallaFacial.process(frameRGB)
-
     # Creamos unas listas donde almacenarenos los resultados
     px = []
     py = []
@@ -66,85 +70,86 @@ while True:
 
             # Ahora vamos a extraer los puntos del rostro detectado
             for id, puntos in enumerate(rostros.landmark):
-                # print(puntos)#Nos entrega una proporcion
+                # Nos entrega una proporcion
                 al, an, c = frame.shape
                 x, y = int(puntos.x * an), int(puntos.y * al)
                 px.append(x)
                 py.append(y)
                 lista.append([id, x, y])
+
                 if len(lista) == 468:
                     # Ceja Derecha
                     x1, y1 = lista[65][1:]
                     x2, y2 = lista[158][1:]
                     cx, cy = (x1 + x2) // 2, (y1 - y2) // 2
-                    # cv2.Line(frame(x1 y1),(x2 V2)(000)t)
-                    # cv2.circle(frane,(x1,y1),r.(0,0,0),cv2.FILLED)
-                    # cv2.circle(frame, (x2, y2), r(0 0 0), cv2.FILLED)
-                    # cv2.circle(frane, (cx, cy), r.(0, 0, 0) cv2.FILLED)
-
                     longitud1 = math.hypot(x2 - x1, y2 - y1)
-                    # print(longitud1)
 
                     # Ceja Izquierda
                     x3, y3 = lista[295][1:]
                     x4, y4 = lista[385][1:]
                     cx2, cy2 = (x3 + x4) // 2, (y3 + y4) // 2
                     longitud2 = math.hypot(x4 - x3, y4 - y3)
-                    # print(longitud2)
 
                     # Boca Extremos
                     x5, y5 = lista[78][1:]
                     x6, y6 = lista[308][1:]
                     cx3, cy3 = (x5 + x6) // 2, (y5 + y6) // 2
                     longitud3 = math.hypot(x6 - x5, y6 - y5)
-                    # print(longitud3)
 
                     # Boca Apertura
                     x7, y7 = lista[13][1:]
                     x8, y8 = lista[14][1:]
                     cx4, cy4 = (x7 + x8) // 2, (y7 + 8) // 2
                     longitud4 = math.hypot(x8 - x7, y8 - y7)
-                    # print(longitud4)
 
-                    # Clasificacion Emocional
+                    # Eleccion aleatoria
+                    if contador >= 10:
+                        contador = 0
+                        while anterior == emocion:
+                            emocion = emocionAleatoria()
+                        anterior = emocion
+                        puntuacion += 1
+                        loop.update(1)
 
+                    # Clasificación emocional
                     # Enojado
-                    if longitud1 < 23 and longitud2 < 23 and 80 < longitud3 < 95 and longitud4 < 5:
-                        cv2.putText(frame, 'Persona Enojada', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                    (0, 0, 255), 3)
-                        image = emotionImage('Persona Enojada')
-                        nFrame = cv2.hconcat([frame, image])
-
+                    if emocion == 'Enojo':
+                        cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                        if longitud1 < 17 and longitud2 < 17 and 80 < longitud3 < 95 and longitud4 < 5:
+                            contador += 1
                     # Feliz
-                    elif 20 < longitud1 < 30 and 20 < longitud2 < 30 and longitud3 > 90 and 5 < longitud4 < 20:
-                        cv2.putText(frame, 'Persona Feliz', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                    (0, 255, 255), 3)
-                        image = emotionImage('Persona Feliz')
-                        nFrame = cv2.hconcat([frame, image])
-
+                    elif emocion == 'Felicidad':
+                        cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 3)
+                        if 20 < longitud1 < 30 and 20 < longitud2 < 30 and longitud3 > 90 and 5 < longitud4 < 30:
+                            contador += 1
                     # Asombrado
-                    elif longitud1 > 35 and longitud2 > 35 and longitud3 > 80 and longitud3 < 90 and longitud4 > 20:
-                        cv2.putText(frame, 'Persona Asombrada', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                    (0, 255, 0), 3)
-                        image = emotionImage('Persona Asombrada')
-                        nFrame = cv2.hconcat([frame, image])
-
+                    elif emocion == 'Asombro':
+                        cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3)
+                        if longitud1 > 10 and longitud2 > 10 and longitud3 > 60 and longitud3 < 110 and longitud4 > 10:
+                            contador += 1
                     # Triste
-                    elif longitud1 > 20 and longitud1 < 35 and longitud2 > 20 and longitud2 < 35 and longitud3 > 80 and longitud3 < 95 and longitud4 < 5:
-                        cv2.putText(frame, 'Persona Triste', (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1,
-                                    (255, 0, 0), 3)
-                        image = emotionImage('Persona Triste')
-                        nFrame = cv2.hconcat([frame, image])
-
+                    elif emocion == 'Tristeza':
+                        cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
+                        if longitud1 > 15 and longitud1 < 40 and longitud2 > 20 and longitud2 < 35 and longitud3 > 80 and longitud3 < 95 and longitud4 < 5:
+                            contador += 1
+                    # Neutral
                     else:
-                        image = emotionImage('Persona Neutral')
-                        nFrame = cv2.hconcat([frame, image])
+                        cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (155, 255, 255), 3)
+                        if emocion == 'Neutralidad':
+                            contador += 1
 
-    cv2.imshow("nFrame", nFrame)
+                    imagen = imagenEmocion(emocion)
+                    nFrame = cv2.hconcat([frame, imagen])
+
+    cv2.imshow("El Juego de las Emociones", nFrame)
     t = cv2.waitKey(1)
 
-    # if t == 27:
     if t == ord('q'):
         break
+    if puntuacion >= limite:
+        time.sleep(0.5)
+        break
+
+#print(contador)
 cap.release()
 cv2.destroyAllWindows()
