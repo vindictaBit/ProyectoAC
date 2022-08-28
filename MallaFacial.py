@@ -31,25 +31,21 @@ def imagenEmocion(emocion):
         imagen = cv2.imread('neutralidad.jpeg')
     return imagen
 
-# Realizamos la Video Captura: 0 cámara integrada / 1 cámara no integrada
 cap = cv2.VideoCapture(0)
 
-# Creamos nuestra funcion de dibujo
 mpDibujo = mp.solutions.drawing_utils
-ConfDibu = mpDibujo.DrawingSpec(thickness=1, circle_radius=1)  # Ajustamos la configuracion de dibujo
+ConfDibu = mpDibujo.DrawingSpec(thickness=1, circle_radius=1)
 
-# Creamos un objeto donde almacenarenos la malla facial
-mpMallaFacial = mp.solutions.face_mesh  # Prinero llamamos la funcion
-MallaFacial = mpMallaFacial.FaceMesh(max_num_faces=1)  # Creamos el objeto(Ctrl+Click)
+mpMallaFacial = mp.solutions.face_mesh
+MallaFacial = mpMallaFacial.FaceMesh(max_num_faces=1)
 
-# Primera Instancia de las Emociones, Puntuacion y Progreso
+limite = 7 # Puntuación para terminar
 emocion = emocionAleatoria()
-anterior = emocion
+anterior = emocion # Para que no haya repetición seguida
 contador = 0
 puntuacion = 0
-limite = 5
-loop = tqdm(total=limite, position=0, leave=False)
-# While principal
+loop = tqdm(total=limite, position=0, leave=False) # Progreso
+
 while True:
     ret, frame = cap.read()
     nFrame = cv2.hconcat([frame, np.zeros((480, 300, 3), np.uint8)])
@@ -61,16 +57,12 @@ while True:
     px = []
     py = []
     lista = []
-    r = 5
-    t = 3
 
-    if resultados.multi_face_landmarks:  # Si detectamos algun rastre
-        for rostros in resultados.multi_face_landmarks:  # Mostramos el rostro detectado
-            mpDibujo.draw_landmarks(frame, rostros, mpMallaFacial.FACE_CONNECTIONS, ConfDibu, ConfDibu)
-
-            # Ahora vamos a extraer los puntos del rostro detectado
+    if resultados.multi_face_landmarks:
+        for rostros in resultados.multi_face_landmarks:
+            # OPCIONAL:
+            # mpDibujo.draw_landmarks(frame, rostros, mpMallaFacial.FACE_CONNECTIONS, ConfDibu, ConfDibu)
             for id, puntos in enumerate(rostros.landmark):
-                # Nos entrega una proporcion
                 al, an, c = frame.shape
                 x, y = int(puntos.x * an), int(puntos.y * al)
                 px.append(x)
@@ -115,7 +107,7 @@ while True:
                     # Enojado
                     if emocion == 'Enojo':
                         cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
-                        if longitud1 < 17 and longitud2 < 17 and 80 < longitud3 < 95 and longitud4 < 5:
+                        if longitud1 < 22 and longitud2 < 22 and 75 < longitud3 < 90 and longitud4 < 8:
                             contador += 1
                     # Feliz
                     elif emocion == 'Felicidad':
@@ -130,7 +122,7 @@ while True:
                     # Triste
                     elif emocion == 'Tristeza':
                         cv2.putText(frame, emocion, (240, 80), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
-                        if longitud1 > 15 and longitud1 < 40 and longitud2 > 20 and longitud2 < 35 and longitud3 > 80 and longitud3 < 95 and longitud4 < 5:
+                        if longitud1 > 21 and longitud1 < 30 and longitud2 > 21 and longitud2 < 30 and longitud3 > 65 and longitud3 < 115 and longitud4 < 10:
                             contador += 1
                     # Neutral
                     else:
@@ -141,7 +133,7 @@ while True:
                     imagen = imagenEmocion(emocion)
                     nFrame = cv2.hconcat([frame, imagen])
 
-    cv2.imshow("El Juego de las Emociones", nFrame)
+    cv2.imshow("Juego de las Emociones", nFrame)
     t = cv2.waitKey(1)
 
     if t == ord('q'):
@@ -150,6 +142,5 @@ while True:
         time.sleep(0.5)
         break
 
-#print(contador)
 cap.release()
 cv2.destroyAllWindows()
