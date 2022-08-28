@@ -1,4 +1,4 @@
-# ProyectoAC: Sistema de detección de emociones
+# ProyectoAC: El juego de las emociones
 
 Videos de utilidad para el proyecto:
 
